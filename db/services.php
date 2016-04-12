@@ -12,20 +12,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * local_get_visible_courses Plugin to add a web service function that shows courses visible to a user
+ * local_wsfunc Plugin to add a web service function that shows courses visible to a user
  *
  *
- * @package    local_get_visible_courses
+ * @package    local_wsfunc
  * @copyright  2016 SaylorAcademy
  * @author     John Azinheira
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 // We define the web service functions to install.
 $functions = array(
-        'local_get_visible_courses_get_visible_courses' => array(
-                'classname'   => 'local_get_visible_courses_external',
+        'local_wsfunc_get_visible_courses' => array(
+                'classname'   => 'local_wsfunc_external',
                 'methodname'  => 'get_visible_courses',
-                'classpath'   => 'local/get_visible_courses/externallib.php',
+                'classpath'   => 'local/wsfunc/externallib.php',
                 'description' => 'Return courses visible to a user.',
                 'type'        => 'read',
         )

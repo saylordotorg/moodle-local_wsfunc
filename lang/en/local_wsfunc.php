@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 /**
- * local_get_visible_courses
+ * local_wsfunc
  *
  *
- * @package    local_get_visible_courses
+ * @package    local_wsfunc
  * @copyright  2016 SaylorAcademy
  * @author     John Azinheira
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-$string['pluginname'] = 'Function get_visible_courses';
+*/
+
+$string['manualheader'] = 'Web Service functions';
+$string['modulename'] = 'WSfunc';
+$string['modulename_help'] = 'Extra web service functions for API calls.';
+$string['modulenameplural'] = 'WSfuncs';
+$string['pluginadministration'] = 'WSfunc Administration';
+$string['pluginname'] = 'WSfunc';

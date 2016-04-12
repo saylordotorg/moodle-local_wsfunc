@@ -1,10 +1,10 @@
 <?php
  
 /**
- * local_get_visible_courses external lib file
+ * local_wsfunc external lib file
  *
  *
- * @package    local_get_visible_courses
+ * @package    local_wsfunc
  * @copyright  2016 SaylorAcademy
  * @author     John Azinheira
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -12,7 +12,7 @@
 require_once($CFG->libdir . "/externallib.php");
 require_once($CFG->libdir . "/coursecatlib.php");
  
-class local_get_visible_courses_external extends external_api {
+class local_wsfunc_external extends external_api {
  
     /**
      * Returns description of method parameters
