@@ -36,10 +36,10 @@ class local_wsfunc_external extends external_api {
         $params = self::validate_parameters(self::get_visible_courses_parameters(),
                 array('cat' => $cat));
 
-        $options[recursive] = true;
-        $options[coursecontacts] = false;
-        $options[summary] = true;
-        $options[sort][idnumber] = 1;
+        $options['recursive'] = true;
+        $options['coursecontacts'] = false;
+        $options['summary'] = true;
+        $options['sort']['idnumber'] = 1;
  
         $coursecat = coursecat::get($params['cat']);
         $courselist = coursecat::get_courses($options);
