@@ -41,8 +41,8 @@ class local_wsfunc_external extends external_api {
         $options['summary'] = true;
         $options['sort']['idnumber'] = 1;
  
-        $coursecat = coursecat::get($params['cat']);
-        $courselist = coursecat::get_courses($options);
+        
+        $courselist = coursecat::get($params['cat'])->get_courses($options);
 
         //Note: don't forget to validate the context and check capabilities
         // $context = context_course::instance($course->id, IGNORE_MISSING);
