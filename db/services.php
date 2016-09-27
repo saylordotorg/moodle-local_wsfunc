@@ -28,6 +28,13 @@ $functions = array(
                 'classpath'   => 'local/wsfunc/externallib.php',
                 'description' => 'Return courses visible to a user.',
                 'type'        => 'read',
+        ),
+        'local_wsfunc_get_grades' => array(
+                'classname'   => 'local_wsfunc_external',
+                'methodname'  => 'get_grades',
+                'classpath'   => 'local/wsfunc/externallib.php',
+                'description' => 'Return student course total grade and grades for activities.',
+                'type'        => 'read',
         )
 );
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
