@@ -11,7 +11,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-$plugin->version  = 2016092700;
+$plugin->version  = 2016092801;
 $plugin->requires = 2010112400;  // Requires this Moodle version - at least 2.0
 $plugin->cron     = 0;
 $plugin->component = 'local_wsfunc';

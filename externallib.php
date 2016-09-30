@@ -468,5 +468,93 @@ class local_wsfunc_external extends external_api {
 
     }
  
+     /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     */
+    public static function get_users_courses_parameters() {
+        return new external_function_parameters(
+            array(
+                'userid' => new external_value(PARAM_INT, 'user id'),
+            )
+        );
+    }
+
+    /**
+     * Get list of courses user is enrolled in (only active enrolments are returned).
+     * Please note the current user must be able to access the course and have the moodle/course:view capability for the specified user, otherwise the course is not included.
+     *
+     * @param int $userid
+     * @return array of courses
+     */
+    public static function get_users_courses($userid) {
+        global $USER, $DB;
+
+        // Do basic automatic PARAM checks on incoming data, using params description
+        // If any problems are found then exceptions are thrown with helpful error messages
+        $params = self::validate_parameters(self::get_users_courses_parameters(), array('userid'=>$userid));
+
+        $courses = enrol_get_users_courses($params['userid'], true, 'id, shortname, fullname, idnumber, visible,
+                   summary, summaryformat, format, showgrades, lang, enablecompletion');
+        $result = array();
+
+        foreach ($courses as $course) {
+            $context = context_course::instance($course->id, IGNORE_MISSING);
+            try {
+                self::validate_context($context);
+            } catch (Exception $e) {
+                // current user can not access this course, sorry we can not disclose who is enrolled in this course!
+                continue;
+            }
+
+            if ($userid != $USER->id and !(has_capability('moodle/course:view', context_user::instance($userid)) or has_capability('moodle/course:viewparticipants', $context))) {
+                // we need capability to view participants in course (in the course context) or view student's courses (in the user context)
+                continue;
+            }
+
+            list($enrolledsqlselect, $enrolledparams) = get_enrolled_sql($context);
+            $enrolledsql = "SELECT COUNT('x') FROM ($enrolledsqlselect) enrolleduserids";
+            $enrolledusercount = $DB->count_records_sql($enrolledsql, $enrolledparams);
+
+            list($course->summary, $course->summaryformat) =
+                external_format_text($course->summary, $course->summaryformat, $context->id, 'course', 'summary', null);
+
+            $result[] = array('id' => $course->id, 'shortname' => $course->shortname, 'fullname' => $course->fullname,
+                'idnumber' => $course->idnumber, 'visible' => $course->visible, 'enrolledusercount' => $enrolledusercount,
+                'summary' => $course->summary, 'summaryformat' => $course->summaryformat, 'format' => $course->format,
+                'showgrades' => $course->showgrades, 'lang' => $course->lang, 'enablecompletion' => $course->enablecompletion
+                );
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     */
+    public static function get_users_courses_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'id'        => new external_value(PARAM_INT, 'id of course'),
+                    'shortname' => new external_value(PARAM_RAW, 'short name of course'),
+                    'fullname'  => new external_value(PARAM_RAW, 'long name of course'),
+                    'enrolledusercount' => new external_value(PARAM_INT, 'Number of enrolled users in this course'),
+                    'idnumber'  => new external_value(PARAM_RAW, 'id number of course'),
+                    'visible'   => new external_value(PARAM_INT, '1 means visible, 0 means hidden course'),
+                    'summary'   => new external_value(PARAM_RAW, 'summary', VALUE_OPTIONAL),
+                    'summaryformat' => new external_format_value('summary', VALUE_OPTIONAL),
+                    'format'    => new external_value(PARAM_PLUGIN, 'course format: weeks, topics, social, site', VALUE_OPTIONAL),
+                    'showgrades' => new external_value(PARAM_BOOL, 'true if grades are shown, otherwise false', VALUE_OPTIONAL),
+                    'lang'      => new external_value(PARAM_LANG, 'forced course language', VALUE_OPTIONAL),
+                    'enablecompletion' => new external_value(PARAM_BOOL, 'true if completion is enabled, otherwise false',
+                                                                VALUE_OPTIONAL)
+                )
+            )
+        );
+    }
  
 }
