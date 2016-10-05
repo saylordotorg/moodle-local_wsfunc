@@ -556,5 +556,67 @@ class local_wsfunc_external extends external_api {
             )
         );
     }
+
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function get_users_lastaccess_parameters() {
+        // get_users_lastaccess_parameters() always return an external_function_parameters(). 
+        // The external_function_parameters constructor expects an array of external_description.
+        return new external_function_parameters(
+            array('userid' => new external_value(PARAM_INT, "User ID to check last access.", VALUE_DEFAULT, 0))
+            );
+    }
+
+    /**
+     * Get the last access time for the specified user.
+     *
+     * @param int $userid
+     * @return int timestamp of lastaccess
+     */
+    public static function get_users_lastaccess($userid) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . "/user/lib.php");
+        // Do basic automatic PARAM checks on incoming data, using params description
+        // If any problems are found then exceptions are thrown with helpful error messages
+        $params = self::validate_parameters(self::get_users_lastaccess_parameters(), array('userid'=>$userid));
+
+        // Check capability to view user details in user context
+        if (!has_capability('moodle/user:viewhiddendetails', context_user::instance($userid))) {
+            throw new moodle_exception('nopermissions', 'error', '', 'You do not have moodle/user:viewhiddendetails for this user!');
+        }
+
+        // Get user record
+        $user = $DB->get_record('user', array('id'=>$params['userid']), '*', MUST_EXIST);
+
+        // Get user details based on record
+        $userdetailfields = array();
+        $userdetailfields[] = 'lastaccess';
+
+        $userdetails = user_get_user_details($user, null, $userdetailfields);
+
+        // Pick out last access
+        if (isset($userdetails['lastaccess'])) {
+            $lastaccess['lastaccess'] = $userdetails['lastaccess'];
+        }
+        else {
+            throw new moodle_exception('missingfield', 'error', '', 'lastaccess');
+        }
+
+        // Return lastaccess
+        return $lastaccess;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     */
+    public static function get_users_lastaccess_returns() {
+        return new external_single_structure(
+            array('lastaccess' => new external_value(PARAM_INT, 'Last access time'))
+        );
+    }
  
 }
