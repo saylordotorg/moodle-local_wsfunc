@@ -526,7 +526,7 @@ class local_wsfunc_external extends external_api {
             list($course->summary, $course->summaryformat) =
                 external_format_text($course->summary, $course->summaryformat, $context->id, 'course', 'summary', null);
 
-            $result[] = array('id' => $course->id, 'shortname' => $course->shortname, 'fullname' => $course->fullname,
+            $result[$course->id] = array('id' => $course->id, 'shortname' => $course->shortname, 'fullname' => $course->fullname,
                 'idnumber' => $course->idnumber, 'visible' => $course->visible, 'enrolledusercount' => $enrolledusercount,
                 'summary' => $course->summary, 'summaryformat' => $course->summaryformat, 'format' => $course->format,
                 'showgrades' => $course->showgrades, 'lang' => $course->lang, 'enablecompletion' => $course->enablecompletion
@@ -556,9 +556,9 @@ class local_wsfunc_external extends external_api {
                 }
 
                 // Add the enrollment times to $result
-                $result['enroltimestart'] = $enrolldate['timestart'];
-                $result['enroltimeend'] = $enrolldate['timeend'];
-                $result['enroltimecreated'] = $enrolldate['timecreated'];
+                $result[$course->id]['enroltimestart'] = $enrolldate['timestart'];
+                $result[$course->id]['enroltimeend'] = $enrolldate['timeend'];
+                $result[$course->id]['enroltimecreated'] = $enrolldate['timecreated'];
             }
 
             
