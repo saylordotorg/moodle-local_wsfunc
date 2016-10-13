@@ -489,7 +489,7 @@ class local_wsfunc_external extends external_api {
      * @return array of courses
      */
     public static function get_users_courses($userid) {
-        global $USER, $DB;
+        global $CFG, $USER, $DB;
 
         // Do basic automatic PARAM checks on incoming data, using params description
         // If any problems are found then exceptions are thrown with helpful error messages
@@ -508,14 +508,20 @@ class local_wsfunc_external extends external_api {
                 continue;
             }
 
-            if ($userid != $USER->id and !(has_capability('moodle/course:view', context_user::instance($userid)) or has_capability('moodle/course:viewparticipants', $context))) {
+            if ($userid != $USER->id and !(has_capability('moodle/course:view', context_user::instance($params['userid'])) or has_capability('moodle/course:viewparticipants', $context))) {
                 // we need capability to view participants in course (in the course context) or view student's courses (in the user context)
                 continue;
             }
 
-            list($enrolledsqlselect, $enrolledparams) = get_enrolled_sql($context);
-            $enrolledsql = "SELECT COUNT('x') FROM ($enrolledsqlselect) enrolleduserids";
-            $enrolledusercount = $DB->count_records_sql($enrolledsql, $enrolledparams);
+            if (has_capability('moodle/course:viewparticipants', $context)) {
+                list($enrolledsqlselect, $enrolledparams) = get_enrolled_sql($context);
+                $enrolledsql = "SELECT COUNT('x') FROM ($enrolledsqlselect) enrolleduserids";
+                $enrolledusercount = $DB->count_records_sql($enrolledsql, $enrolledparams);
+            }
+            else {
+                $enrolledusercount = 0;
+            }
+
 
             list($course->summary, $course->summaryformat) =
                 external_format_text($course->summary, $course->summaryformat, $context->id, 'course', 'summary', null);
@@ -525,6 +531,38 @@ class local_wsfunc_external extends external_api {
                 'summary' => $course->summary, 'summaryformat' => $course->summaryformat, 'format' => $course->format,
                 'showgrades' => $course->showgrades, 'lang' => $course->lang, 'enablecompletion' => $course->enablecompletion
                 );
+
+            if ($userid != $USER->id and !(has_capability('moodle/user:viewhiddendetails', context_user::instance($params['userid'])) or has_capability('moodle/user:viewhiddendetails', $context))) {
+                // Check capabilities. If this is not the user getting course enrollment info for themselves, they have to have moodle/user:viewhiddendetails in the context of the user they are asking about or hidden details for users in a course context (teachers)
+                continue;
+            }
+            else {
+                // Get the enrollment dates
+                $enrolldatesql = "SELECT ue.id, ue.timestart, ue.timeend, ue.timecreated 
+                    FROM {$CFG->prefix}user_enrolments ue
+                    JOIN {$CFG->prefix}enrol e on ue.enrolid = e.id 
+                    WHERE ue.userid = {$userid} AND e.courseid = {$course->id}";
+                
+                $enrolldaterecords = $DB->get_records_sql($enrolldatesql);
+
+                unset($enrolldate);
+                foreach ($enrolldaterecords as $eid => $record) {
+                    // This should grab the latest enrollment record - some users have two enrollment records for some courses in our table; the old one does not have the proper timestart value. 
+                    $enrolldate['timestart'] = $enrolldaterecords[$eid]->timestart;
+                    $enrolldate['timeend'] = $enrolldaterecords[$eid]->timeend;
+                    $enrolldate['timecreated'] = $enrolldaterecords[$eid]->timecreated;
+
+                    break; // <- Hack to get the array value with the highest enrolment id (the array key).
+                }
+
+                // Add the enrollment times to $result
+                $result['enroltimestart'] = $enrolldate['timestart'];
+                $result['enroltimeend'] = $enrolldate['timeend'];
+                $result['enroltimecreated'] = $enrolldate['timecreated'];
+            }
+
+            
+
         }
 
         return $result;
@@ -551,7 +589,10 @@ class local_wsfunc_external extends external_api {
                     'showgrades' => new external_value(PARAM_BOOL, 'true if grades are shown, otherwise false', VALUE_OPTIONAL),
                     'lang'      => new external_value(PARAM_LANG, 'forced course language', VALUE_OPTIONAL),
                     'enablecompletion' => new external_value(PARAM_BOOL, 'true if completion is enabled, otherwise false',
-                                                                VALUE_OPTIONAL)
+                                                                VALUE_OPTIONAL),
+                    'enroltimestart' => new external_value(PARAM_INT, 'time active enrolment began', VALUE_OPTIONAL),
+                    'enroltimeend' => new external_value(PARAM_INT, 'time of active enrolment end', VALUE_OPTIONAL),
+                    'enroltimecreated' => new external_value(PARAM_INT, 'time the enrolment record was created', VALUE_OPTIONAL)
                 )
             )
         );
